@@ -19,7 +19,7 @@ class MyAppStateless extends StatelessWidget{
     return new MaterialApp(
       title: "武邦阅读",
       theme: new ThemeData(
-          primarySwatch: Colors.pink
+          primarySwatch: Colors.orange
       ),
 //      debugShowMaterialGrid: true,
       debugShowCheckedModeBanner: false,

@@ -17,6 +17,11 @@ class PersonPage extends StatefulWidget{
 
 class _PersonPage extends State<PersonPage> {
   @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+  }
+  @override
   Widget build(BuildContext context) {
     // TODO: implement build
     return new Text("个人页面");
