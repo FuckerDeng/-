@@ -3,6 +3,7 @@ import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_swiper/flutter_swiper.dart';
 import '../../public/IconFont.dart';
+import '../../router/routers.dart';
 
 
 
@@ -58,7 +59,7 @@ class _HomePage extends State<HomePage> with AutomaticKeepAliveClientMixin{
   }
 
   ///顶部搜索栏部分
-  Widget searchSection(){
+  Widget searchSection(BuildContext context){
     return new Positioned(
       top: 0,
       left: 0,
@@ -72,7 +73,7 @@ class _HomePage extends State<HomePage> with AutomaticKeepAliveClientMixin{
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
             searchLeading(),
-            searchEdit(),
+            searchEdit(context),
             searchButton()
           ],
         ),
@@ -92,11 +93,13 @@ class _HomePage extends State<HomePage> with AutomaticKeepAliveClientMixin{
   }
 
   ///顶部搜索的中间部分
-  Widget searchEdit(){
+  Widget searchEdit(BuildContext context){
     return new Expanded(
         flex: 2,
         child: new InkWell(
-            onTap: (){},
+            onTap: (){
+              Routers.router.navigateTo(context, Routers.searchPage);
+            },
             child: new Container(
                 height: ScreenUtil().setHeight(100),
                 alignment: Alignment.center,
@@ -476,7 +479,7 @@ class _HomePage extends State<HomePage> with AutomaticKeepAliveClientMixin{
           child:  new Stack(
             children: <Widget>[
               homeListView,//整个页面的内容
-              searchNeedShow?searchSection():new Container(),//顶部搜索框部分
+              searchNeedShow?searchSection(context):new Container(),//顶部搜索框部分
             ],
           )
         ),
