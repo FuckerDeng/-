@@ -11,6 +11,8 @@ class IconFont {
   static const font_name = 'IconFont';
 
   static const IconData bangdan = const IconData(0xe7d6, fontFamily: font_name);
+  static const IconData book = const IconData(0xe661, fontFamily: font_name);
+  static const IconData bookshelf = const IconData(0xe602, fontFamily: font_name);
   static const IconData duihao = const IconData(0xe60b, fontFamily: font_name);
   static const IconData fenlei = const IconData(0xe620, fontFamily: font_name);
   static const IconData icon_jiaosefuzhi = const IconData(0xe71d, fontFamily: font_name);
