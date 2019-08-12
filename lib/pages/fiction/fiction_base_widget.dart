@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../router/routers.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:fluro/fluro.dart';
 
 class FictionBaseWidget {
   //小说横向展示的组件
@@ -8,7 +9,11 @@ class FictionBaseWidget {
     return new InkWell(
       onTap: (){
         print("小说被点击了");
-        Routers.router.navigateTo(context, Routers.fictionDetailPage);
+        Routers.router.navigateTo(
+            context,
+            Routers.fictionDetailPage,
+          transition:TransitionType.inFromRight
+        );
       },
       child: new Container(
         width: ScreenUtil.screenWidth,
@@ -63,6 +68,43 @@ class FictionBaseWidget {
             )
           ],
         ),
+      ),
+    );
+  }
+
+  ///小说信息竖向展示
+  static Widget fictionColumnInfo(BuildContext context,bool showHotValue){
+    return new InkWell(
+      onTap: (){
+        print("竖向展示的小说被点击了！");
+        Routers.router.navigateTo(context, Routers.fictionDetailPage,transition: TransitionType.inFromRight);
+      },
+      child: new Column(
+        children: <Widget>[
+          new Container(
+            width: ScreenUtil().setWidth(250),
+            height: ScreenUtil().setHeight(400),
+            child: Image.asset("res/imgs/180.jpg"),
+          ),
+          new Container(
+            padding: EdgeInsets.fromLTRB(0, 3, 0, 3),
+            child: Text(
+              "小说名字",
+              style: new TextStyle(
+                  fontWeight: FontWeight.bold
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          !showHotValue?new Container():new Text(
+            "小说人气",
+            style: new TextStyle(
+                fontSize: ScreenUtil().setSp(25),
+                color: Colors.grey
+            ),
+          )
+        ],
       ),
     );
   }

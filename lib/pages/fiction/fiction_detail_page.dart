@@ -3,6 +3,8 @@ import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'fiction_base_widget.dart';
 import '../../public/IconFont.dart';
+import '../../router/routers.dart';
+import 'package:fluro/fluro.dart';
 
 
 class FictionDetailPage extends StatefulWidget{
@@ -19,31 +21,19 @@ class FictionDetailPage extends StatefulWidget{
 
 class _FictionDetailPage extends State<FictionDetailPage> {
   ScrollController _controller = new ScrollController();
-  double _topBarShowOpacity = 1;
+  double _topBarShowOpacity = 1;//1是透明，0是不透明
   bool _isExpand = true;
-  bool _introduceLengthIsBg28 = false;
+  bool _introduceLengthIsBg100 = false;
   String jianjie = "小说简介，即简明扼要的介绍。是当事人全面而简洁地介绍情况的一种书面表达方式，它是应用写作学研究的一种日常应用文体。是当事人全面而简洁地介绍情况的一种书面表达方式，它是应用写作学研究的一种日常应用文体。是当事人全面而简洁地介绍情况的一种书面表达方式，它是应用写作学研究的一种日常应用文体。";
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    _introduceLengthIsBg28 = jianjie.length>96?true:false;
-    if(_introduceLengthIsBg28) _isExpand = false;
-    _controller.addListener((){
-        if(_controller.offset>=50 && _topBarShowOpacity<1){
-          setState(() {
-            _topBarShowOpacity = 0;
-          });
-        }
+    _introduceLengthIsBg100 = jianjie.length>100?true:false;
+    if(_introduceLengthIsBg100) _isExpand = false;
+    _controller.addListener(topBarListener);
 
-        if(_controller.offset<50){
-          setState(() {
-            _topBarShowOpacity = 1-_controller.offset/50;
-          });
-        }
-
-    });
   }
 
   @override
@@ -56,34 +46,42 @@ class _FictionDetailPage extends State<FictionDetailPage> {
   Widget build(BuildContext context) {
     // TODO: implement build
     return new Scaffold(
-      appBar: new AppBar(
-        leading: new IconButton(
-            icon: new Icon(Icons.chevron_left),
-            onPressed: (){
-              Navigator.pop(context);
-            }
-        ),
-        elevation: 0,
-        centerTitle: true,
-        title: new Text(
-            "小说名字",
-          style: new TextStyle(
-            color: new Color.fromRGBO(0, 0, 0, _topBarShowOpacity)
-          ),
-        ),
-        backgroundColor: new Color.fromRGBO(255, 255, 255, _topBarShowOpacity) ,//158, 158, 158 gray
-      ),
       body: new Container(
         color: new Color.fromRGBO(230,230,230, 1),
         child: new Stack(
           children: <Widget>[
             pageBody(),
-//            topBar(context),
+            topBar(context),
             bottomBar()
           ],
         ),
       ),
     );
+  }
+
+  void topBarListener(){
+//    print(_controller.offset);
+    //滑动超过100，则直接设置成不透明
+    if(_controller.offset>=100 && _topBarShowOpacity>0){
+      setState(() {
+        _topBarShowOpacity = 0;
+      });
+    }
+
+    //滑动在50-100之间时，根据滑动的举例来设置透明度,因为滑动越靠近100，就越不需要透明，但(_controller.offset-50)/50越靠近1，因此要用1减去这个值
+    if(_controller.offset<100 && _controller.offset>=50  ){
+      setState(() {
+        _topBarShowOpacity =1-(_controller.offset-50)/50;
+      });
+    }
+
+    //滑动小于50，则一直透明
+    if(_controller.offset<50  && _topBarShowOpacity<1){
+      setState(() {
+        _topBarShowOpacity = 1;
+      });
+    }
+
   }
 
   ///顶部导航栏
@@ -94,10 +92,11 @@ class _FictionDetailPage extends State<FictionDetailPage> {
       child: new Container(
         alignment: Alignment.center,
         width: ScreenUtil().setWidth(ScreenUtil.screenWidth),
-        height: ScreenUtil().setHeight(200),
-        padding: EdgeInsets.fromLTRB(10, 10, 10, 10),
+        height: ScreenUtil().setHeight(235),
+        padding: EdgeInsets.fromLTRB(10, ScreenUtil().setHeight(75), 10, 0),
         decoration: BoxDecoration(
-            color: new Color.fromRGBO(255, 255, 255, 1)
+            color: new Color.fromRGBO(245, 245, 245,1- _topBarShowOpacity) ,//158, 158, 158 gray
+          border: new Border(bottom: BorderSide(color: new Color.fromRGBO(235, 235, 235,1- _topBarShowOpacity)))
         ),
         child: new Row(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -112,10 +111,11 @@ class _FictionDetailPage extends State<FictionDetailPage> {
             new Expanded(
               child: new Container(
                 alignment: Alignment.center,
+                padding: EdgeInsets.only(right: ScreenUtil().setHeight(150)),
                 child: new Text(
                     "小说名字",
                   style: new TextStyle(
-                    color: new Color.fromRGBO(0, 0, 0, 0.1)
+                    color: new Color.fromRGBO(0, 0, 0, 1-_topBarShowOpacity)
                   ),
                 ),
               ),
@@ -128,13 +128,36 @@ class _FictionDetailPage extends State<FictionDetailPage> {
 
   ///页面的主题部分，显示小说的详细内容
   Widget pageBody(){
-    return ListView(
-      controller: _controller,
-      children: <Widget>[
-        fictionHeaderSection(),
-        fictionIntroduceSection(),
-        fictionChaptersSection()
-      ],
+    return Container(
+//      margin: EdgeInsets.only(top: ScreenUtil().setHeight(75)),
+      padding:EdgeInsets.only(bottom: 50),
+      decoration: new BoxDecoration(
+          border: new Border(top: BorderSide(color: Colors.black))
+      ),
+      child: ListView(
+//        shrinkWrap: true,
+        controller: _controller,
+        children: <Widget>[
+          blackContainer(),//占位置的空容器
+          fictionHeaderSection(),//详情页头部部分，展示小说基本信息
+          fictionIntroduceSection(),//详情页小说简介部分
+          fictionChaptersSection(),//详情页小说章节展示部分
+          yourLikeSection(context),//详情页 猜你喜欢 推荐部分
+          fictionTypePushSection(context),//同类型书籍推荐
+          banquanSection()//版权信息
+        ],
+      ),
+    );
+  }
+
+  Widget blackContainer(){
+    return new Container(
+        width: ScreenUtil().setWidth(ScreenUtil.screenWidth),
+        height: ScreenUtil().setHeight(150),
+        color: Colors.white,
+//            decoration: BoxDecoration(
+//              border: new Border(bottom: BorderSide(color: Colors.black))
+//            ),
     );
   }
 
@@ -143,13 +166,20 @@ class _FictionDetailPage extends State<FictionDetailPage> {
     return new Positioned(
       left: 0,
       bottom: 0,
-      child: new Row(
-        children: <Widget>[
-          bottomButton("加入书架", Colors.white, Colors.orange,IconFont.shujia),
-          bottomButton("开始阅读", Colors.orange, Colors.white,IconFont.shu),
+      child: new Container(
+        decoration: BoxDecoration(
+          border: new Border(
+            top: BorderSide(color: Colors.black26)
+          )
+        ),
+        child: new Row(
+          children: <Widget>[
+            bottomButton("加入书架", Colors.white, Colors.orange,IconFont.shujia),
+            bottomButton("开始阅读", Colors.orange, Colors.white,IconFont.shu),
 
-        ],
-      ),
+          ],
+        ),
+      )
     );
   }
 
@@ -161,7 +191,14 @@ class _FictionDetailPage extends State<FictionDetailPage> {
   /// @buttonIconData 按钮上的icon图标
   Widget bottomButton(String buttonName,Color bgColor,Color textColor,IconData buttonIconData){
     return new InkWell(
-      onTap: (){},
+      onTap: (){
+        if(buttonName=="开始阅读"){
+          Routers.router.navigateTo(context, Routers.fictionReadPage+"?fictionid=123&fictionname=test",transition: TransitionType.inFromRight);
+        }
+        if(buttonName=="加入书架"){
+
+        }
+      },
       child: new Container(
         width: ScreenUtil().setWidth(ScreenUtil.screenWidth/2),
         height: ScreenUtil().setHeight(170),
@@ -185,6 +222,7 @@ class _FictionDetailPage extends State<FictionDetailPage> {
       color: Colors.white,
       width: ScreenUtil().setWidth(ScreenUtil.screenWidth),
       padding: EdgeInsets.fromLTRB(40, 10, 40, 10),
+
       child: new Column(
         children: <Widget>[
           topRow(),
@@ -287,7 +325,7 @@ class _FictionDetailPage extends State<FictionDetailPage> {
     return InkWell(
           onTap: (){
     setState(() {
-    if(_introduceLengthIsBg28){
+    if(_introduceLengthIsBg100){
     _isExpand = !_isExpand;
     }
     });
@@ -340,6 +378,7 @@ class _FictionDetailPage extends State<FictionDetailPage> {
       onTap: (){
         setState(() {
           print("小说目录部分被点击！");
+          Routers.router.navigateTo(context, Routers.fictionChaptersPage+"?fictionid=123&fictionname=test",transition: TransitionType.inFromRight);
         });
       },
       child: Container(
@@ -375,6 +414,71 @@ class _FictionDetailPage extends State<FictionDetailPage> {
             ],
           )
       ),
+    );
+  }
+
+  ///猜你喜欢推荐部分
+  Widget yourLikeSection(BuildContext context){
+    return new Container(
+      width: ScreenUtil().setHeight(ScreenUtil.screenWidth),
+      margin: EdgeInsets.fromLTRB(0, 10, 0, 0),
+      padding: EdgeInsets.fromLTRB(20, 10, 20, 10),
+      color: Colors.white,
+      child: new Column(
+        children: <Widget>[
+          FictionBaseWidget.sectionTitle("猜你喜欢", false, null),
+          FictionBaseWidget.fictionRowInfo(context),
+          FictionBaseWidget.fictionRowInfo(context)
+        ],
+      ),
+    );
+  }
+
+  ///与展示的书籍同类型推荐
+  Widget fictionTypePushSection(BuildContext context){
+    return Container(
+      width: ScreenUtil().setHeight(ScreenUtil.screenWidth),
+      margin: EdgeInsets.fromLTRB(0, 10, 0, 0),
+      color: Colors.white,
+      child: new Column(
+        children: <Widget>[
+          new Container(
+            padding: EdgeInsets.fromLTRB(20, 10, 20, 10),
+            child: FictionBaseWidget.sectionTitle("小说类型", false, null),
+          ),
+          new GridView.count(
+            mainAxisSpacing: 5,
+            childAspectRatio: 0.8,
+            shrinkWrap: true,
+            crossAxisCount: 3,
+            semanticChildCount: 6,
+            children: <Widget>[
+              FictionBaseWidget.fictionColumnInfo(context, false),
+              FictionBaseWidget.fictionColumnInfo(context, false),
+              FictionBaseWidget.fictionColumnInfo(context, false),
+              FictionBaseWidget.fictionColumnInfo(context, false),
+              FictionBaseWidget.fictionColumnInfo(context, false),
+              FictionBaseWidget.fictionColumnInfo(context, false),
+            ],
+          )
+        ],
+      ),
+    );
+  }
+
+  
+  ///底部版权部分
+  Widget banquanSection(){
+    return new Container(
+      width: ScreenUtil().setHeight(ScreenUtil.screenWidth),
+      padding: EdgeInsets.fromLTRB(20, 10, 20, 10),
+      color: Colors.white,
+      child:new Text(
+        "版权信息：本网站的所有内容来源于网络，如果侵权，请联系邮箱：844537819@qq.com，我们会第一时间删除并道歉。",
+        style: new TextStyle(
+            fontSize: ScreenUtil().setSp(25)
+        ),
+      ) ,
     );
   }
 }

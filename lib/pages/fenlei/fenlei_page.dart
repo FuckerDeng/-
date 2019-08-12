@@ -19,6 +19,14 @@ class _FenleiPage extends State<FenleiPage> {
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
-    return new Text("分类页面");
+    return new Scaffold(
+      body: new Container(
+        child: new ListView(
+          children: <Widget>[
+            new Text("分类页面"),
+          ],
+        ),
+      ),
+    );
   }
 }

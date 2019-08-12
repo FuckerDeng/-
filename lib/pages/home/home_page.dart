@@ -230,10 +230,10 @@ class _HomePage extends State<HomePage> with AutomaticKeepAliveClientMixin{
           new Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: <Widget>[
-              fictionColumnInfo(context),
-              fictionColumnInfo(context),
-              fictionColumnInfo(context),
-              fictionColumnInfo(context),
+              FictionBaseWidget.fictionColumnInfo(context,true),
+              FictionBaseWidget.fictionColumnInfo(context,true),
+              FictionBaseWidget.fictionColumnInfo(context,true),
+              FictionBaseWidget.fictionColumnInfo(context,true),
             ],
           )
         ],
@@ -241,42 +241,7 @@ class _HomePage extends State<HomePage> with AutomaticKeepAliveClientMixin{
     );
   }
 
-  ///小说信息竖向展示
-  Widget fictionColumnInfo(BuildContext context){
-    return new InkWell(
-      onTap: (){
-        print("竖向展示的小说被点击了！");
-        Routers.router.navigateTo(context, Routers.fictionDetailPage);
-      },
-      child: new Column(
-        children: <Widget>[
-          new Container(
-            width: ScreenUtil().setWidth(250),
-            height: ScreenUtil().setHeight(400),
-            child: Image.asset("res/imgs/180.jpg"),
-          ),
-          new Container(
-            padding: EdgeInsets.fromLTRB(0, 3, 0, 3),
-            child: Text(
-              "小说名字",
-              style: new TextStyle(
-                  fontWeight: FontWeight.bold
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          new Text(
-            "小说人气",
-            style: new TextStyle(
-                fontSize: ScreenUtil().setSp(25),
-                color: Colors.grey
-            ),
-          )
-        ],
-      ),
-    );
-  }
+
 
   ///小说推送部分
   Widget fictionPush(String pushName){
