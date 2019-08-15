@@ -31,6 +31,7 @@ class _HomePage extends State<HomePage> with AutomaticKeepAliveClientMixin{
   ScrollController _scrollController = new ScrollController();
   bool searchNeedShow = true;
 
+
   @override
   void initState() {
     // TODO: implement initState
@@ -324,7 +325,7 @@ class _HomePage extends State<HomePage> with AutomaticKeepAliveClientMixin{
         ),
       );
     }
-
+    print("被渲染了");
     return homePage();
   }
 }

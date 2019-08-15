@@ -5,6 +5,7 @@ import 'fiction_base_widget.dart';
 import '../../public/IconFont.dart';
 import '../../router/routers.dart';
 import 'package:fluro/fluro.dart';
+import 'package:flutter/services.dart';
 
 
 class FictionDetailPage extends StatefulWidget{
@@ -44,6 +45,7 @@ class _FictionDetailPage extends State<FictionDetailPage> {
   }
   @override
   Widget build(BuildContext context) {
+//    SystemChrome.setEnabledSystemUIOverlays([SystemUiOverlay.top, SystemUiOverlay.bottom]);
     // TODO: implement build
     return new Scaffold(
       body: new Container(

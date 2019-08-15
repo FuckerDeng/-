@@ -20,13 +20,34 @@ class _FenleiPage extends State<FenleiPage> {
   Widget build(BuildContext context) {
     // TODO: implement build
     return new Scaffold(
-      body: new Container(
-        child: new ListView(
-          children: <Widget>[
-            new Text("分类页面"),
-          ],
+      appBar: new AppBar(
+        title: new Text("手势测试"),
+      ),
+      body: MyButton(),
+    );
+  }
+}
+
+class MyButton extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        print('MyButton was tapped!');
+      },
+      child: Container(
+        height: 36.0,
+        padding: const EdgeInsets.all(8.0),
+        margin: const EdgeInsets.symmetric(horizontal: 8.0),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(5.0),
+          color: Colors.lightGreen[500],
+        ),
+        child: Center(
+          child: Text('Engage'),
         ),
       ),
     );
   }
 }
+
