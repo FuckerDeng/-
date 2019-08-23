@@ -6,6 +6,7 @@ import 'bookself/bookshelf_page.dart';
 import 'findbook/findbook_page.dart';
 import 'person/person_page.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../public/global.dart';
 
 class MyApp extends StatefulWidget{
   @override
@@ -81,7 +82,7 @@ class _MyApp extends State<MyApp>{
   @override
   Widget build(BuildContext context) {
     initScreen(context);
-
+    initGlobal(context);
     return mainApp(context);
   }
 
@@ -97,6 +98,12 @@ class _MyApp extends State<MyApp>{
     ScreenUtil.instance = ScreenUtil(width: 1080, height: 2248, allowFontScaling: true)..init(context);
   }
 
+  initGlobal(BuildContext context){
+    Global.statusTopBarHeight = MediaQuery.of(context).padding.top;
+    Global.statusBottomBarHeight = MediaQuery.of(context).padding.bottom;
+    Global.screenWidth = MediaQuery.of(context).size.width;
+    Global.screenHeight = MediaQuery.of(context).size.height;
+  }
 
   Widget mainApp(BuildContext context){
     return new Scaffold(

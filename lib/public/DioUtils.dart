@@ -1,5 +1,8 @@
 import 'package:dio/dio.dart';
+import 'dart:convert';
 //import 'dart:mirrors';
+import 'models/chapter.dart';
+
 
 class DioUtils{
   static  Future dataFromNet(String url) async{
@@ -13,4 +16,5 @@ class DioUtils{
       return null;
     }
   }
+
 }

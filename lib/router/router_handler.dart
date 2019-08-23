@@ -35,9 +35,7 @@ class RouterHandler{
   static Handler fictionReaderHandler = new Handler(
       handlerFunc: (BuildContext context,Map<String,List<String>> paramis){
         var fictionId = paramis["fictionid"]?.first;//获取路由路径中的参数：page2?msg=xxx&msg2=xxx
-        var fictionName = paramis["fictionname"]?.first;//获取路由路径中的参数：page2?msg=xxx&msg2=xxx
-        print("收到参数 ${fictionId}+${fictionName}");
-        return new ReadPage(fictionId,fictionName);
+        return new ReadPage(fictionId);
       }
   );
 }
