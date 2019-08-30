@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'dart:convert';
 //import 'dart:mirrors';
-import 'models/chapter.dart';
+import '../models/chapter.dart';
 
 
 class DioUtils{
@@ -9,7 +9,6 @@ class DioUtils{
     try{
 //      Response response = await Dio().get("http://127.0.0.1:8080/fictons");
       Response response = await Dio().get(url);
-      print(response.data.toString());
       return response.data;
     }catch(e){
       print("DioUtils:dataFromNet==>"+e);

@@ -31,11 +31,14 @@ dependencies:
   url_launcher : 5.1.1 #点击图片、按钮等进行电话拨打、跳转网页、访问邮箱等的插件
   flutter_easyrefresh : 1.2.7 #下拉刷新以及上拉加载操作 :https://github.com/xuelongqy/flutter_easyrefresh
   provide : 1.0.2 #Google推出的状态管理的插件 ： https://github.com/google/flutter-provide
-  fluttertoast: ^3.1.0 #轻提示插件 ：https://github.com/PonnamKarthik/FlutterToast
+  fluttertoast: ^3.1.0 #轻提示插件 ：https://github.com/PonnamKarthik/FlutterToast |https://pub.dev/packages/fluttertoast
   fluro: ^1.5.1  #路由插件，适合大型项目，小项目没有几个页面可以用flutter自带的路由 ：https://github.com/theyakka/fluro
   flutter_html: ^0.10.4 #将html标签渲染成flutter的widget组件的插件 ：https://github.com/Sub6Resources/flutter_html
   #flutter提供3种本地化存储数据方式：sqflite（sqllite功能），file(数据存放在文件），shared_preference（）
   shared_preferences : 0.5.3 #https://github.com/flutter/plugins/tree/master/packages/shared_preferences flutter官方的一个插件
+  fijkplayer: ^0.1.2 #视频播放插件 https://fijkplayer.befovy.com/docs/zh/install.html
+  video_player: "0.7.2"
+  chewie: ^0.9.6
 
 dev_dependencies:
   flutter_test:

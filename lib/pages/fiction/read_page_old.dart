@@ -40,7 +40,7 @@ class _ReadPage extends State<ReadPage> {
   Future<void> screenInitMethod;
   Future<void> beforeRead;
 
-  PageController pageController = new PageController(keepPage: false);
+  PageController pageController = new PageController();
   double fontsize = ScreenUtil().setSp(45);
   double fontheight = 1.2;
   int nowPage = 0;
@@ -51,10 +51,9 @@ class _ReadPage extends State<ReadPage> {
     super.initState();
     localInfo = getChpterIdFromLocal(widget.fictionId);
     chapterInitMethod = getNextChapter( localInfo["chapterId"]);
-    pageController.addListener(scrollLinstener);
+//    screenInitMethod = screenInit();
+//    beforeRead = beforeReadInit();
   }
-
-
 
   //从网络获取章节信息
   Future<void> getNextChapter(int chapterId) async{
@@ -88,35 +87,67 @@ class _ReadPage extends State<ReadPage> {
     return localInfo;
 
   }
+  ///计算阅读页面每行的字数或整个屏幕文字的行数
+  initReadPageNum(BuildContext context,bool checkRow,double fontsize){
+    String txt = "中";
 
-  ///对章节进行分页
-  checkCheck(Chapter chapter){
-    TextPainter painter = TextPainter();
-    String testStr = "　　"+chapter.content;
-    testStr = testStr.replaceAll("\n", "\n　　");
-    List<String> pageStrs = new List();
-    int start = 0;
-    while(true){
-      painter
-        ..textDirection = TextDirection.ltr
-        ..text = new TextSpan(text: testStr,style:readFontTextStyle(fontsize, fontheight))
-        ..layout(maxWidth:  Screen.width-20);
-      int end = painter.getPositionForOffset(new Offset(Screen.width-20, Screen.height-Screen.topSafeHeight-Screen.bottomSafeHeight-60)).offset;
-      
-      if(end==0) {
-        break;
-      };
-      String pageStr = testStr.substring(start,end);
-      if(pageStr.substring(0,1)=="\n"){
-        pageStr = pageStr.substring(1);
+    if(checkRow){
+      print("初始化行的字数");
+      //字体大小36
+      while(!checkRowFull1(new TextSpan(text: txt,style: new TextStyle(fontSize: fontsize,height: fontheight)), context,checkRow)){
+//      print("增加字符");
+        txt +="中";
       }
-      testStr = testStr.substring(end);
-      pageStrs.add(pageStr);
+      Global.readPageRowWorldNum = txt.length-1;
+    }else{
+      print("初始化列数");
+      while(!checkScreenFull(new TextSpan(text: txt,style: new TextStyle(fontSize: fontsize,height: fontheight)), context,checkRow)){
+//      print("增加字符");
+          txt +="中";
+      
+      }
 
+      double cNum = (txt.length-1)/Global.readPageRowWorldNum;
+      Global.readPageColoumNum = cNum.toInt();
     }
-    chapter.pageStrs = pageStrs;
   }
 
+  ///文字未超过整个屏幕返回false，超过则返回true
+  bool checkRowFull1(TextSpan span,BuildContext context,bool checkRow){
+    TextPainter painter = TextPainter()
+      ..textDirection = TextDirection.ltr
+      ..text = span
+      ..maxLines = 1
+      ..layout(maxWidth: MediaQuery.of(context).size.width-20);
+    return painter.didExceedMaxLines || painter.size.height>(MediaQuery.of(context).size.height-MediaQuery.of(context).padding.top-MediaQuery.of(context).padding.bottom-50);
+  }
+
+
+
+  ///文字未超过整个屏幕返回false，超过则返回true
+  bool checkScreenFull(TextSpan span,BuildContext context,bool checkRow){
+    TextPainter painter = TextPainter()
+      ..textDirection = TextDirection.ltr
+      ..text = span
+      ..layout(maxWidth: MediaQuery.of(context).size.width-20);
+    return painter.didExceedMaxLines || painter.size.height>(MediaQuery.of(context).size.height-MediaQuery.of(context).padding.top-MediaQuery.of(context).padding.bottom-50);
+  }
+
+  ///初始化当前页面能显示的没行文字数和总行数
+  Future screenInit() async {
+    ///如果此设备上的行字数和每页的列数还没有被初始化过，则进行初始化
+    if(!Global.rowWorldNumIsInit){
+      print("readPage 行字数和列数进行初始化！");
+      initReadPageNum(context, true,fontsize);
+      await initReadPageNum(context, false,fontsize);
+      if(Global.readPageRowWorldNum>1 && Global.readPageColoumNum>1){
+        print("一行 ${Global.readPageRowWorldNum} 个字");
+        print("一页 ${Global.readPageColoumNum} 列");
+        Global.rowWorldNumIsInit = true;
+      }
+
+    }
+  }
 
   Future beforeReadInit() async {
     await Future.wait([this.screenInitMethod,this.chapterInitMethod]);
@@ -127,7 +158,18 @@ class _ReadPage extends State<ReadPage> {
 
     ///设置主题
     SystemChrome.setSystemUIOverlayStyle(MyTheme.light);
+    ///如果此设备上的行字数和每页的列数还没有被初始化过，则进行初始化
+    if(!Global.rowWorldNumIsInit){
+      print("readPage 行字数和列数进行初始化！");
+      initReadPageNum(context, true,fontsize);
+      initReadPageNum(context, false,fontsize);
+      if(Global.readPageRowWorldNum>1 && Global.readPageColoumNum>1){
+        print("一行 ${Global.readPageRowWorldNum} 个字");
+        print("一页 ${Global.readPageColoumNum} 列");
+        Global.rowWorldNumIsInit = true;
+      }
 
+    }
     return new Scaffold(
         backgroundColor: Colors.white,
         body: new FutureBuilder(
@@ -147,26 +189,17 @@ class _ReadPage extends State<ReadPage> {
             }else if(snapshot.connectionState==ConnectionState.done){
               ///对章节进行分页
               if(needFenye){
-                if(preChapter!=null) {
-                  checkCheck(preChapter);
-                  updatePages(preChapter,context);
-                };
-                if(nowChapter!=null) {
-                  checkCheck(nowChapter);
-                  updatePages(nowChapter,context);
-                };
-                if(nextChapter!=null) {
-                  checkCheck(nextChapter);
-                  updatePages(nextChapter,context);
-                };
+                if(preChapter !=null) pageInfos.addAll(fenye(preChapter));
+                if(nowChapter !=null) pageInfos.addAll(fenye(nowChapter));
+                if(nextChapter !=null) pageInfos.addAll(fenye(nextChapter));
+
                 needFenye = false;
-
-
-
-
               }
 
-
+//              ///把每页文字渲染成展示的组件
+              pageInfos.forEach((pageNum,pageStr){
+                pages.add(readPage2(pageNum,context,pageStr,pageInfos.length));
+              });
               return new PageView(
 //                physics: BouncingScrollPhysics(),
                 physics: BouncingScrollPhysics(),
@@ -187,30 +220,92 @@ class _ReadPage extends State<ReadPage> {
     );
   }
 
-  needPreOrNextChater(){
-    int allPage = 0;
-    if(preChapter!=null){
-      allPage +=preChapter.pageStrs.length;
-    }
-    if(nowChapter!=null){
-      allPage +=nowChapter.pageStrs.length;
-    }
-    if(nextChapter!=null){
-      allPage +=nextChapter.pageStrs.length;
-    }
-    if(preChapter!=null && nowPage==(preChapter.pageStrs.length-1)){
+  ///对章节文本进行分页
+  ///
+  /// 返回值为map，键值为“章节id-当前内容在章节中的页数#章节标题” eg:"1-2#第一章：XXX":表示第一章第二页
+  Map<String,String> fenye(Chapter chapter){
+    List<String> rows = chapter.content.split("\n");
+    int rowWorldNum = Global.readPageRowWorldNum;
+    int pageColumnTotalCount = Global.readPageColoumNum;
+    int page = 1;
+    String content = "";
+    int nowPageColumnCount = 0;
+    Map<String,String> pageInfos = new Map();
+    for(String r in rows){
+      ///先对当前content的文本进行处理，因为content可能在上次循环中还有没处理的文本
+      int contentRow = (content.length/rowWorldNum).floor();
+      int contentLastWordNum = content.length%rowWorldNum;
+      if(contentLastWordNum!=0){
+        contentRow+=1;
+      }
+      while(contentRow>=pageColumnTotalCount){
+        //得到新页数据
+        String pageContent = contentRow==pageColumnTotalCount?content:content.substring(0,pageColumnTotalCount*rowWorldNum);
+        pageInfos["${chapter.chapterId}-${page}#${chapter.title}"] = pageContent;
+//        print("第${page}页内容：${pageInfos[page]}");
+        //对content进行裁剪，获得未处理的文本
+        content = contentRow==pageColumnTotalCount?"":content.substring(pageColumnTotalCount*rowWorldNum);
+        contentRow-=pageColumnTotalCount;//计算还剩多少行没处理
+        nowPageColumnCount=0;//换新页的时候都要把当前页文本行数重置为0
+        page++;
+      }
 
+      if(nowPageColumnCount==0){
+        nowPageColumnCount = contentRow;
+      }
+
+      //行首增加两个空白字符，可以由搜狗输入法，输入v1，选择d 得到空白字符
+      r = "　　"+r;
+      int lastWordNum = r.length%rowWorldNum;
+      int rowNum = (r.length/rowWorldNum).floor();
+      if(lastWordNum!=0){
+        r +="\n";
+        rowNum+=1;
+      }
+
+      if(nowPageColumnCount+rowNum>=pageColumnTotalCount){
+        int needRow = pageColumnTotalCount-nowPageColumnCount;
+        content = content + (needRow==rowNum?r:r.substring(0,needRow*rowWorldNum));
+//        content= content+r.substring(0,needRow*rowWorldNum);
+        pageInfos["${chapter.chapterId}-${page}#${chapter.title}"] = content;
+//        print("第${page}页内容：${pageInfos[page]}");
+        page++;
+        nowPageColumnCount = 0;
+        content = needRow==rowNum?"":r.substring(needRow*rowWorldNum);
+        continue;
+      }
+      content +=r;
+      nowPageColumnCount +=rowNum;
     }
+
+    int contentRow = (content.length/rowWorldNum).floor();
+    int contentLastWordNum = content.length%rowWorldNum;
+    if(contentRow==0 && contentLastWordNum==0){
+      return pageInfos;
+    }
+
+    if(contentLastWordNum!=0){
+//    content +="\n";
+      contentRow+=1;
+    }
+    while(contentRow>=pageColumnTotalCount){
+      int needRow = pageColumnTotalCount-nowPageColumnCount;
+      //得到新页数据
+      pageInfos["${chapter.chapterId}-${page}#${chapter.title}"] = contentRow==pageColumnTotalCount?content:content.substring(0,pageColumnTotalCount*rowWorldNum);
+//      print("第${page}页内容：${pageInfos[page]}");
+      //对content进行裁剪，获得未处理的文本
+      content = contentRow==pageColumnTotalCount?"":content.substring(pageColumnTotalCount*rowWorldNum);
+      contentRow-=pageColumnTotalCount;
+      page++;
+    }
+
+    pageInfos["${chapter.chapterId}-${page}#${chapter.title}"] = content;
+//    print("第${page}页内容：${pageInfos[page]}");
+    return pageInfos;
+
   }
 
-  updatePages(Chapter chapter,BuildContext context){
-    int i = 1;
-    for(String str in chapter.pageStrs){
-      pages.add(readPage2("${chapter.chapterId}-${i++}#${chapter.title}",context,str,chapter.pageStrs.length));
-    }
-  }
-
-  ///阅读页面,包含顶部的章节标题部分，底部电量，页数部分，中间正文部分
+  ///阅读页面
   Widget readPage2(String num,BuildContext context,String txt,int allPageNum){
 //    print("第${num}页内容：${txt}");
     return new Container(
@@ -222,7 +317,7 @@ class _ReadPage extends State<ReadPage> {
       ),
       child: new Stack(
         children: <Widget>[
-          new Container(//中间正文部分
+          new Container(//小说文本现实部分
             width: Screen.width,
             height: Screen.screenContentHeight,
             padding: EdgeInsets.fromLTRB(0, 20, 0, 20),
@@ -317,11 +412,5 @@ class _ReadPage extends State<ReadPage> {
       height: fontheight,
       fontSize: fontsize,
     );
-  }
-
-  scrollLinstener(){
-//    pageController.offset 为滑动的总距离
-    double pageOffset = pageController.offset/Screen.width;
-    print(pageOffset);
   }
 }
