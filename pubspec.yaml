@@ -39,6 +39,9 @@ dependencies:
   fijkplayer: ^0.1.2 #视频播放插件 https://fijkplayer.befovy.com/docs/zh/install.html
   video_player: "0.7.2"
   chewie: ^0.9.6
+  battery: ^0.3.0
+  device_info: ^0.4.0
+  intl: ^0.15.8
 
 dev_dependencies:
   flutter_test:
