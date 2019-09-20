@@ -2,18 +2,15 @@ import 'package:flutter/material.dart';
 import '../../router/routers.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fluro/fluro.dart';
+import '../../public/models/fiction_detail_page_model_entity.dart';
 
 class FictionBaseWidget {
   //小说横向展示的组件
-  static Widget fictionRowInfo(BuildContext context){
+  static Widget fictionRowInfo(BuildContext context,FictionDetailPageModelFiciton fiction){
     return new InkWell(
       onTap: (){
-        print("小说被点击了");
-        Routers.router.navigateTo(
-            context,
-            Routers.fictionDetailPage,
-          transition:TransitionType.inFromRight
-        );
+        print("横向小说被点击了");
+        Routers.router.navigateTo(context, Routers.fictionDetailPage+"?fictionid=${fiction.id}",transition: TransitionType.inFromRight);
       },
       child: new Container(
         width: ScreenUtil.screenWidth,
@@ -33,7 +30,7 @@ class FictionBaseWidget {
                 children: <Widget>[
                   new Container(//小说名字
                     child: new Text(
-                      "小说名字",
+                      fiction.fictionName,
                       style: new TextStyle(
                           fontSize: ScreenUtil().setSp(40),
                           fontWeight: FontWeight.bold
@@ -43,7 +40,7 @@ class FictionBaseWidget {
                   new Container(//小说简介
                     padding: EdgeInsets.fromLTRB(0, 15, 0, 15),
                     child: new Text(
-                      "小说信息:通过给列表中的每个条目分配为“语义” key，无限列表可以更高效，因为框架将同步条目与匹配的语义key并因此具有相似（或相同）的可视外观",
+                      fiction.fictionDesc,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -51,11 +48,11 @@ class FictionBaseWidget {
                   new Row(//小说作者、类型和分数
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
-                      new Text("作者名字"),
+                      new Text(fiction.author),
                       new Container(
                         child: new Row(
                           children: <Widget>[
-                            typeOrRecord("小说类型", 0),
+                            typeOrRecord(fiction.fictiontype, 0),
                             new Text(" "),
                             typeOrRecord("小说分数", 1),
                           ],
@@ -73,11 +70,11 @@ class FictionBaseWidget {
   }
 
   ///小说信息竖向展示
-  static Widget fictionColumnInfo(BuildContext context,bool showHotValue){
+  static Widget fictionColumnInfo(BuildContext context,bool showHotValue,FictionDetailPageModelFiciton fiction){
     return new InkWell(
       onTap: (){
         print("竖向展示的小说被点击了！");
-        Routers.router.navigateTo(context, Routers.fictionDetailPage,transition: TransitionType.inFromRight);
+        Routers.router.navigateTo(context, Routers.fictionDetailPage+"?fictionid=${fiction.id}",transition: TransitionType.inFromRight);
       },
       child: new Column(
         children: <Widget>[
@@ -89,7 +86,7 @@ class FictionBaseWidget {
           new Container(
             padding: EdgeInsets.fromLTRB(0, 3, 0, 3),
             child: Text(
-              "小说名字",
+              fiction.fictionName,
               style: new TextStyle(
                   fontWeight: FontWeight.bold
               ),

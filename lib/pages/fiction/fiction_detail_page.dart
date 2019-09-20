@@ -6,11 +6,15 @@ import '../../public/IconFont.dart';
 import '../../router/routers.dart';
 import 'package:fluro/fluro.dart';
 import 'package:flutter/services.dart';
-
+import '../../public/provide/fictionDetailProvider.dart';
+import '../../public/models/fiction_detail_page_model_entity.dart';
+import 'package:provide/provide.dart';
 
 class FictionDetailPage extends StatefulWidget{
 
+  String fictionid;
 
+  FictionDetailPage(this.fictionid);
   @override
   State createState() {
     // TODO: implement createState
@@ -25,16 +29,16 @@ class _FictionDetailPage extends State<FictionDetailPage> {
   double _topBarShowOpacity = 1;//1是透明，0是不透明
   bool _isExpand = true;
   bool _introduceLengthIsBg100 = false;
-  String jianjie = "小说简介，即简明扼要的介绍。是当事人全面而简洁地介绍情况的一种书面表达方式，它是应用写作学研究的一种日常应用文体。是当事人全面而简洁地介绍情况的一种书面表达方式，它是应用写作学研究的一种日常应用文体。是当事人全面而简洁地介绍情况的一种书面表达方式，它是应用写作学研究的一种日常应用文体。";
+
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    _introduceLengthIsBg100 = jianjie.length>100?true:false;
+
     if(_introduceLengthIsBg100) _isExpand = false;
     _controller.addListener(topBarListener);
-
+    Provide.value<FictionDetailProvider>(context).getData(int.parse(widget.fictionid));
   }
 
   @override
@@ -115,7 +119,7 @@ class _FictionDetailPage extends State<FictionDetailPage> {
                 alignment: Alignment.center,
                 padding: EdgeInsets.only(right: ScreenUtil().setHeight(150)),
                 child: new Text(
-                    "小说名字",
+                  Provide.value<FictionDetailProvider>(context).showFiction.fictionName,
                   style: new TextStyle(
                     color: new Color.fromRGBO(0, 0, 0, 1-_topBarShowOpacity)
                   ),
@@ -195,7 +199,7 @@ class _FictionDetailPage extends State<FictionDetailPage> {
     return new InkWell(
       onTap: (){
         if(buttonName=="开始阅读"){
-          Routers.router.navigateTo(context, Routers.fictionReadPage+"?fictionid=1",transition: TransitionType.inFromRight);
+          Routers.router.navigateTo(context, Routers.fictionReadPage,transition: TransitionType.inFromRight);
         }
         if(buttonName=="加入书架"){
 
@@ -249,33 +253,36 @@ class _FictionDetailPage extends State<FictionDetailPage> {
             child: new Container(
               padding: EdgeInsets.fromLTRB(30, 10, 10, 5),
               height: ScreenUtil().setHeight(480),
-              child: new Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: <Widget>[
-                  new Text(
-                    "小说名字",
-                    style: new TextStyle(fontSize: ScreenUtil().setSp(50),fontWeight: FontWeight.bold),
-                    maxLines: 2,
-                  ),
-                  new Text(
-                    "作者名字",
-                    style: new TextStyle(fontSize: ScreenUtil().setSp(25),color: Colors.grey),
-                  ),
-                  new Text(
-                    "小说字数",
-                    style: new TextStyle(fontSize: ScreenUtil().setSp(30),color: Colors.grey),
-                  ),
-                  new Container(
-                    padding: EdgeInsets.fromLTRB(5, 0, 5, 0),
-                    color: new Color.fromRGBO(252,238,237, 1),
-                    child: new Text(
-                      "小说类型",
-                      style: new TextStyle(color: new Color.fromRGBO(240,143,138, 1),fontSize: ScreenUtil().setSp(23)),
+              child: new Provide<FictionDetailProvider>(builder: (context, child, fictionDetailProvider){
+                child:new Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: <Widget>[
+                    new Text(
+                      fictionDetailProvider.showFiction.fictionName,
+                      style: new TextStyle(fontSize: ScreenUtil().setSp(50),fontWeight: FontWeight.bold),
+                      maxLines: 2,
                     ),
-                  )
-                ],
-              ),
+                    new Text(
+                      fictionDetailProvider.showFiction.author,
+                      style: new TextStyle(fontSize: ScreenUtil().setSp(25),color: Colors.grey),
+                    ),
+                    new Text(
+                      "暂未统计",
+                      style: new TextStyle(fontSize: ScreenUtil().setSp(30),color: Colors.grey),
+                    ),
+                    new Container(
+                      padding: EdgeInsets.fromLTRB(5, 0, 5, 0),
+                      color: new Color.fromRGBO(252,238,237, 1),
+                      child:  new Text(
+                        fictionDetailProvider.showFiction.fictiontype,
+                        style: new TextStyle(color: new Color.fromRGBO(240,143,138, 1),fontSize: ScreenUtil().setSp(23)),
+                      )
+                    )
+                  ],
+                );
+              }),
+
             ),
           )
         ],
@@ -290,7 +297,7 @@ class _FictionDetailPage extends State<FictionDetailPage> {
       children: <Widget>[
         numberShow("2.3","万", "人气值"),
         numberShow("8.1", null,"评分"),
-        numberShow("939",null,"本周在读人数"),
+        numberShow("未统计",null,"本周在读人数"),
       ],
     );
   }
@@ -327,8 +334,9 @@ class _FictionDetailPage extends State<FictionDetailPage> {
     return InkWell(
           onTap: (){
     setState(() {
-    if(_introduceLengthIsBg100){
-    _isExpand = !_isExpand;
+
+      if(Provide.value<FictionDetailProvider>(context).showFiction.fictionDesc.length>100){
+      _isExpand = !_isExpand;
     }
     });
     },
@@ -343,15 +351,19 @@ class _FictionDetailPage extends State<FictionDetailPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                 FictionBaseWidget.sectionTitle("简介", false, null),
-                new Text(
-                  jianjie,
-                  style: new TextStyle(
-                      fontSize: ScreenUtil().setSp(30),
-                      color: Colors.black54
+                new Provide<FictionDetailProvider>(builder: (context, child, fictionDetailProvider) {
+                  child:
+                  new Text(
+                    fictionDetailProvider.showFiction.fictionDesc,
+                    style: new TextStyle(
+                        fontSize: ScreenUtil().setSp(30),
+                        color: Colors.black54
+                    ),
+                    maxLines: _isExpand ? 100 : 3,
+                    overflow: TextOverflow.ellipsis,
+                  );
+                }
                   ),
-                  maxLines: _isExpand?100:3,
-                  overflow: TextOverflow.ellipsis,
-                ),
                 new Text("")
               ],
             ),
@@ -380,7 +392,7 @@ class _FictionDetailPage extends State<FictionDetailPage> {
       onTap: (){
         setState(() {
           print("小说目录部分被点击！");
-          Routers.router.navigateTo(context, Routers.fictionChaptersPage+"?fictionid=123&fictionname=test",transition: TransitionType.inFromRight);
+          Routers.router.navigateTo(context, Routers.fictionChapterListPage+"?fictionid=${Provide.value<FictionDetailProvider>(context).showFiction.id}&fictionname=${Provide.value<FictionDetailProvider>(context).showFiction.fictionName}",transition: TransitionType.inFromRight);
         });
       },
       child: Container(
@@ -392,27 +404,30 @@ class _FictionDetailPage extends State<FictionDetailPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               FictionBaseWidget.sectionTitle("查看目录", false, null),
-              new Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  new Text(
-                    "最后一章的名字",
-                    style: new TextStyle(
-                        fontSize: ScreenUtil().setSp(30),
-                        color: Colors.black54
-                    ),
+          new Provide<FictionDetailProvider>(builder: (context, child, fictionDetailProvider){
+            child: new Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                new Text(
+                  fictionDetailProvider.fictionDetailPageModelEntity.lastChapter.title,
+                  style: new TextStyle(
+                      fontSize: ScreenUtil().setSp(30),
+                      color: Colors.black54
                   ),
-                  new Row(
-                    children: <Widget>[
-                      new Text(
-                          "最后一章更新时间/已完结",
-                        style: new TextStyle(color: Colors.orange,fontSize: ScreenUtil().setSp(30),),
-                      ),
-                      new Icon(Icons.chevron_right,size:ScreenUtil().setSp(50) ,)
-                    ],
-                  )
-                ],
-              ),
+                ),
+                new Row(
+                  children: <Widget>[
+                    new Text(
+                      fictionDetailProvider.fictionDetailPageModelEntity.lastChapter.ctime,
+                      style: new TextStyle(color: Colors.orange,fontSize: ScreenUtil().setSp(30),),
+                    ),
+                    new Icon(Icons.chevron_right,size:ScreenUtil().setSp(50) ,)
+                  ],
+                )
+              ],
+            );
+          }),
+
             ],
           )
       ),
@@ -427,13 +442,17 @@ class _FictionDetailPage extends State<FictionDetailPage> {
       padding: EdgeInsets.fromLTRB(20, 10, 20, 10),
       color: Colors.white,
       child: new Column(
-        children: <Widget>[
-          FictionBaseWidget.sectionTitle("猜你喜欢", false, null),
-          FictionBaseWidget.fictionRowInfo(context),
-          FictionBaseWidget.fictionRowInfo(context)
-        ],
+        children: yourLikeWigdets()
       ),
     );
+  }
+
+  List<Widget> yourLikeWigdets(){
+    List<Widget> list = new List();
+    list.add( FictionBaseWidget.sectionTitle("猜你喜欢", false, null));
+    for(FictionDetailPageModelFiciton f in Provide.value<FictionDetailProvider>(context).fictionDetailPageModelEntity.ficitons){
+      FictionBaseWidget.fictionRowInfo(context,f);
+    }
   }
 
   ///与展示的书籍同类型推荐
@@ -454,18 +473,18 @@ class _FictionDetailPage extends State<FictionDetailPage> {
             shrinkWrap: true,
             crossAxisCount: 3,
             semanticChildCount: 6,
-            children: <Widget>[
-              FictionBaseWidget.fictionColumnInfo(context, false),
-              FictionBaseWidget.fictionColumnInfo(context, false),
-              FictionBaseWidget.fictionColumnInfo(context, false),
-              FictionBaseWidget.fictionColumnInfo(context, false),
-              FictionBaseWidget.fictionColumnInfo(context, false),
-              FictionBaseWidget.fictionColumnInfo(context, false),
-            ],
+            children: sameTypeWigdets()
           )
         ],
       ),
     );
+  }
+
+  List<Widget> sameTypeWigdets(){
+    List<Widget> list = new List();
+    for(FictionDetailPageModelFiciton f in Provide.value<FictionDetailProvider>(context).fictionDetailPageModelEntity.sameTypeFictions){
+      FictionBaseWidget.fictionColumnInfo(context,false,f);
+    }
   }
 
   

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fluro/fluro.dart';
 import '../pages/search/search_page.dart';
 import '../pages/fiction/fiction_detail_page.dart';
-import '../pages/fiction/chapters_page.dart';
+import '../pages/fiction/chapter_list_page.dart';
 import '../pages/fiction/read_page.dart';
 
 class RouterHandler{
@@ -16,18 +16,18 @@ class RouterHandler{
   ///小说详情页面
   static Handler fictionDetailHandler =  new Handler(
       handlerFunc: (BuildContext context,Map<String,List<String>> paramis){
-        var msg = paramis["msg"]?.first;//获取路由路径中的参数：page2?msg=xxx&msg2=xxx
-        return new FictionDetailPage();
+        var fictionid = paramis["fictionid"]?.first;//获取路由路径中的参数：page2?msg=xxx&msg2=xxx
+        return new FictionDetailPage(fictionid);
       }
   );
 
   ///小说章节页面
-  static Handler fictionChaptersHandler = new Handler(
+  static Handler fictionChapterListHandler = new Handler(
     handlerFunc: (BuildContext context,Map<String,List<String>> paramis){
       var fictionId = paramis["fictionid"]?.first;//获取路由路径中的参数：page2?msg=xxx&msg2=xxx
       var fictionName = paramis["fictionname"]?.first;//获取路由路径中的参数：page2?msg=xxx&msg2=xxx
       print("收到参数 ${fictionId}+${fictionName}");
-      return new ChaptersPage(fictionId,fictionName);
+      return new ChapterListPage(fictionId,fictionName);
     }
   );
 

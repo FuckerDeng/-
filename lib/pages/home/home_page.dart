@@ -5,6 +5,8 @@ import 'package:flutter_swiper/flutter_swiper.dart';
 import '../../public/IconFont.dart';
 import '../../router/routers.dart';
 import '../fiction/fiction_base_widget.dart';
+import 'package:provide/provide.dart';
+import '../../public/provide/home_page_provider.dart';
 
 
 
@@ -34,6 +36,7 @@ class _HomePage extends State<HomePage> with AutomaticKeepAliveClientMixin{
 
   @override
   void initState() {
+    Provide.value<HomePageProvider>(context).getData();
     // TODO: implement initState
     //给整个页面的listvie的控制器加监听，向下滑动超过
     _scrollController.addListener(
@@ -227,14 +230,14 @@ class _HomePage extends State<HomePage> with AutomaticKeepAliveClientMixin{
       child: new Column(
         children: <Widget>[
           FictionBaseWidget.sectionTitle("热门推荐", true, "换一换"),//标题部分
-          FictionBaseWidget.fictionRowInfo(context),//横向展示小说内容
+          FictionBaseWidget.fictionRowInfo(context,Provide.value<HomePageProvider>(context).hotTui.first),//横向展示小说内容
           new Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: <Widget>[
-              FictionBaseWidget.fictionColumnInfo(context,true),
-              FictionBaseWidget.fictionColumnInfo(context,true),
-              FictionBaseWidget.fictionColumnInfo(context,true),
-              FictionBaseWidget.fictionColumnInfo(context,true),
+              FictionBaseWidget.fictionColumnInfo(context,true,Provide.value<HomePageProvider>(context).hotTui[1]),
+              FictionBaseWidget.fictionColumnInfo(context,true,Provide.value<HomePageProvider>(context).hotTui[2]),
+              FictionBaseWidget.fictionColumnInfo(context,true,Provide.value<HomePageProvider>(context).hotTui[3]),
+              FictionBaseWidget.fictionColumnInfo(context,true,Provide.value<HomePageProvider>(context).hotTui[4]),
             ],
           )
         ],
@@ -253,10 +256,10 @@ class _HomePage extends State<HomePage> with AutomaticKeepAliveClientMixin{
       child: new Column(
         children: <Widget>[
           FictionBaseWidget.sectionTitle(pushName, true,"查看更多"),
-          FictionBaseWidget.fictionRowInfo(context),
-          FictionBaseWidget.fictionRowInfo(context),
-          FictionBaseWidget.fictionRowInfo(context),
-          FictionBaseWidget.fictionRowInfo(context),
+          FictionBaseWidget.fictionRowInfo(context,Provide.value<HomePageProvider>(context).otherTui[0]),
+          FictionBaseWidget.fictionRowInfo(context,Provide.value<HomePageProvider>(context).otherTui[1]),
+          FictionBaseWidget.fictionRowInfo(context,Provide.value<HomePageProvider>(context).otherTui[2]),
+          FictionBaseWidget.fictionRowInfo(context,Provide.value<HomePageProvider>(context).otherTui[3]),
         ],
       ),
     );

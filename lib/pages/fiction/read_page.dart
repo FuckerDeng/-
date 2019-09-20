@@ -24,7 +24,7 @@ class ReadPage extends StatefulWidget{
     return new _ReadPage();
   }
 }
-
+enum ScrollDirection{left,right}
 class _ReadPage extends State<ReadPage> {
   List<Widget> pages = new List<Widget>();//前、当前、下章节组成的页面
 
@@ -36,12 +36,14 @@ class _ReadPage extends State<ReadPage> {
   Map<String,Object> localInfo;
   bool canScroll = true;
   bool needFenye = true;
+  int start = 0;
+  ScrollDirection direct = ScrollDirection.right;
 
   Future<void> chapterInitMethod;
   Future<void> screenInitMethod;
   Future<void> beforeRead;
 
-  PageController pageController = new PageController(keepPage: false);
+  PageController pageController = new PageController(keepPage: false,viewportFraction: 1.0);
   double fontsize = ScreenUtil().setSp(45);
   double fontheight = 1.2;
   //当前章节中展示的页面index
@@ -82,13 +84,17 @@ class _ReadPage extends State<ReadPage> {
         }
       }
       setState(() {
-
+        print("上一章和下一章信息获取完成，需要重新构建");
       });
     });
+    print("完成！");
   }
 
   ///获取下一章节信息
   Future getNextChapter(int chapterId) async {
+    if(nextChapter!=null || canScroll==false || chapterId<=0){
+      return;
+    }
     canScroll = false;
     Future<List<Chapter>> fromNet = Server.getChpterInfo(int.parse(widget.fictionId),chapterId,0);
     await fromNet.then((chapters){
@@ -101,28 +107,53 @@ class _ReadPage extends State<ReadPage> {
       fenye(nextChapter);
       canScroll = true;
       setState(() {
+        print("下一章信息获取完成，需要重新构建");
       });
 
     });
+    print("完成");
   }
 
   ///获取上一章节信息
   Future getPreChapter(int chapterId) async {
+    if(preChapter!=null || canScroll==false || chapterId<=0){
+      return;
+    }
     canScroll = false;
-    Future<List<Chapter>> fromNet = Server.getChpterInfo(int.parse(widget.fictionId),chapterId,0);
-    await fromNet.then((chapters){
-      if(chapters.length ==0){
-        print("未获取到章节信息:chapterId=${chapterId}");
-        canScroll = true;
-        return ;
-      }
-      preChapter = chapters[0];
-      fenye(preChapter);
+    List<Chapter> fromNet = await Server.getChpterInfo(int.parse(widget.fictionId),chapterId,0);
+    var startTime = new DateTime.now().second;
+    if(fromNet.length ==0){
+      print("未获取到章节信息:chapterId=${chapterId}");
       canScroll = true;
-      setState(() {
-      });
+      return ;
+    }
 
+    preChapter = fromNet[0];
+    fenye(preChapter);
+
+
+//    await fromNet.then((chapters){
+//      if(chapters.length ==0){
+//        print("未获取到章节信息:chapterId=${chapterId}");
+//        canScroll = true;
+//        return ;
+//      }
+//
+//      preChapter = chapters[0];
+//      fenye(preChapter);
+//      canScroll = true;
+//      setState(() {
+//        print("上一章信息获取完成，需要重新构建");
+//        });
+//
+//    });
+    var endTime = new DateTime.now().second;
+    print("章节分页用时 ${endTime-startTime} 秒！");
+    pageController.jumpToPage(preChapter.pageStrs.length+nowPage);
+    setState(() {
+      print("上一章信息获取完成，需要重新构建");
     });
+    canScroll = true;
   }
 
   //从本地获取上次读取章节的信息:以后用sqlflite存储数据
@@ -239,8 +270,8 @@ class _ReadPage extends State<ReadPage> {
         child: new Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-//            new CircularProgressIndicator(),//转圈的加载动画
-            new Image.asset("res/imgs/waitting.gif",width: 50,height: 50,fit: BoxFit.cover,),
+            new CircularProgressIndicator(),//转圈的加载动画
+//            new Image.asset("res/imgs/waitting.gif",width: 50,height: 50,fit: BoxFit.cover,),
             new Text("    加载处理中...")
           ],
         ),
@@ -249,29 +280,34 @@ class _ReadPage extends State<ReadPage> {
     int prePageNum = (preChapter==null?0:preChapter.pageStrs.length);
     int nowPageNum = (nowChapter==null?0:nowChapter.pageStrs.length);
     int nextPageNum = (nextChapter==null?0:nextChapter.pageStrs.length);
-    print("prePageNum=${prePageNum}===nowPageNum=${nowPageNum}===nextPageNum=${nextPageNum}");
+    print("readBody-prePageNum=${prePageNum}===nowPageNum=${nowPageNum}===nextPageNum=${nextPageNum}");
     int pageCount = prePageNum+nowPageNum+nextPageNum;
     var showChapter;
     return PageView.builder(
-      physics: PageScrollPhysics(),
+      physics: BouncingScrollPhysics(),
       controller: pageController,
       itemCount: pageCount,
       itemBuilder: (context,index){
-        print("index:${index}");
+        print("builder-开始构建");
+        print("builder-index:${index}");
         int nowPageIndex = index -  (preChapter==null?0:preChapter.pageStrs.length);
 
         if(nowPageIndex>=nowChapter.pageStrs.length){
           //翻到下一章节
+          print("builder-翻到下一张");
           showChapter = nextChapter;
           nowPageIndex = 0;
         }else if(nowPageIndex<0){
-          //翻到上一章节
-          showChapter = preChapter;
-          nowPageIndex = preChapter.pageStrs.length-1;
+
+            //翻到上一章节
+            print("builder-翻到上一张");
+            showChapter = preChapter;
+            nowPageIndex = preChapter.pageStrs.length-1;
+
         }else{
           showChapter = nowChapter;
         }
-        print("nowPageIndex=${nowPageIndex}");
+        print("builder-nowPageIndex=${nowPageIndex}");
         var p = createReadPage(showChapter,nowPageIndex,pageCount,context);
         return p;
       },
@@ -316,7 +352,7 @@ class _ReadPage extends State<ReadPage> {
                 txt,
                 style: readFontTextStyle(fontsize,fontheight)
               ),
-              onTapUp: readSectionOnTap
+              onTapUp: (detail){}
             )
           ),
           new Positioned(//页面顶部小说章节名字
@@ -399,31 +435,35 @@ class _ReadPage extends State<ReadPage> {
 //      Fluttertoast.showToast(msg: "从网络获取内容中...",gravity: ToastGravity.CENTER);
       return;
     };
+    var pageOffset = pageController.offset/Screen.width;
 
-//    pageController.offset 为滑动的总距离
-    double pageOffset = pageController.offset/Screen.width;
-    print("pageOffset=${pageOffset}");
+    print("scrollLinstener-pageOffset=${pageOffset}");
     var nextChapterIndex = nowChapter.pageStrs.length +(preChapter==null?0:preChapter.pageStrs.length);
     if (pageOffset >= nextChapterIndex) {
-      print('到达下个章节了');
+      print('scrollLinstener-到达下个章节了');
 
       preChapter = nowChapter;
       nowChapter = nextChapter;
       nextChapter = null;
       nowPage = 0;
-      getNextChapter(nowChapter.chapterId+1);
       pageController.jumpToPage(preChapter.pageStrs.length);
-//      setState(() {});
+      getNextChapter(nowChapter.chapterId+1);
+      setState(() {});
+
     }
     if (preChapter != null && pageOffset <= preChapter.pageStrs.length - 1) {
-      print('到达上个章节了');
+
+      print('scrollLinstener-到达上个章节了');
       nextChapter = nowChapter;
       nowChapter = preChapter;
       preChapter = null;
       nowPage = nowChapter.pageStrs.length - 1;
+      pageController.jumpToPage(nowChapter.pageStrs.length - 1);
       getPreChapter(nowChapter.chapterId-1);
-      pageController.jumpToPage(nowPage);
       setState(() {});
+
+
     }
+
   }
 }
