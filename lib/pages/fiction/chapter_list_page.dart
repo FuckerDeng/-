@@ -4,6 +4,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provide/provide.dart';
 import '../../public/provide/chapter_list_provider.dart';
 import '../../public/models/chapter_list_model.dart';
+import 'package:bangwu_app/router/routers.dart';
+import 'package:fluro/fluro.dart';
 
 
 
@@ -11,7 +13,7 @@ class ChapterListPage extends StatefulWidget{
   String fictionName = "";
   String fictionId = "";
 
-  ChapterListPage(this.fictionId,this.fictionName);
+  ChapterListPage(this.fictionId,this.fictionName){}
   @override
   State createState() {
     // TODO: implement createState
@@ -23,20 +25,28 @@ class ChapterListPage extends StatefulWidget{
 
 class _ChapterListPage extends State<ChapterListPage> {
   List<String> fictionChapters = new List<String> ();
-
+  Future futureFunc = null;
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    Provide.value<ChapterListProvider>(context).getData(int.parse(widget.fictionId));
+  }
+
+  initPageData(BuildContext context)async{
+    String future = await Provide.value<ChapterListProvider>(context).getData(int.parse(widget.fictionId));
+
+    return future;
   }
 
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
+    if(this.futureFunc == null){
+      this.futureFunc = initPageData(context);
+    }
     return new Scaffold(
       appBar: chaptersAppBar(context),
-      body: fictionChaptersListView(),
+      body: fictionChaptersListView(context),
     );
   }
 
@@ -52,9 +62,25 @@ class _ChapterListPage extends State<ChapterListPage> {
     );
   }
 
-  Widget fictionChaptersListView(){
-    return new ListView(
-      children:  Provide.value<ChapterListProvider>(context).bigChapters.length<0?<Widget>[new Center(child: new Text("未发现任何章节！"),)]:bigChapters(Provide.value<ChapterListProvider>(context).bigChapters),
+  Widget fictionChaptersListView(BuildContext context){
+    return new FutureBuilder(
+      future: this.futureFunc,
+      builder: (BuildContext context,snapshot){
+        if(snapshot.connectionState == ConnectionState.done && snapshot.data!=null){
+          return new Provide<ChapterListProvider>(
+            builder: (context,child,chapterListProvider){
+              return new ListView(
+                children:  chapterListProvider.bigChapters.length<=0?<Widget>[new Center(child: new Text("未发现任何章节！"),)]:bigChapters(chapterListProvider.bigChapters),
+              );
+            },
+          );
+        }else{
+          return new Center(
+            child: new CircularProgressIndicator(),
+          );
+        }
+
+      },
     );
   }
 
@@ -72,7 +98,6 @@ class _ChapterListPage extends State<ChapterListPage> {
       onTap: (){
         bigChapter.open = !bigChapter.open;
         setState(() {
-
         });
       },
       child: new Column(
@@ -96,7 +121,7 @@ class _ChapterListPage extends State<ChapterListPage> {
               ],
             ),
           ),
-          !bigChapter.open?null:new Column(//如果被展开就显示具体的20个章节
+          !bigChapter.open?new Container():new Column(//如果被展开就显示具体的20个章节
             children: littleChapterList(bigChapter),
           )
         ],
@@ -110,6 +135,8 @@ class _ChapterListPage extends State<ChapterListPage> {
       Widget detailChapter = new InkWell(
         onTap: (){
           print("章节：${ch.title} 被点击了！");
+
+          Routers.router.navigateTo(context, Routers.fictionReadPage+"?fictionid=${ch.fictionId}&chapterid=${ch.chapterId}", transition: TransitionType.inFromRight);
         },
         child: new Container(//具体小说章节
           color: Colors.black26,
@@ -117,13 +144,13 @@ class _ChapterListPage extends State<ChapterListPage> {
           padding: EdgeInsets.only(left: 20),
           child: new Row(
             children: <Widget>[
-              new Icon(Icons.chevron_right,color: new Color.fromRGBO(0, 0, 0, 1),),
+              new Icon(Icons.chevron_right,color: new Color.fromRGBO(0, 0, 0, 0),),
               new Container(
                 margin: EdgeInsets.only(left: 20),
                 child: new Text(
                   ch.title,
                   style: new TextStyle(
-                      fontSize: ScreenUtil().setSp(40)
+                      fontSize: ScreenUtil().setSp(35)
                   ),
                 ),
               ),

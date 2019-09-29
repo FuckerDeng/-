@@ -17,7 +17,8 @@ import 'package:fluttertoast/fluttertoast.dart';
 
 class ReadPage extends StatefulWidget{
   String fictionId= "";
-  ReadPage(this.fictionId);
+  String chapterId = "";
+  ReadPage(this.fictionId,this.chapterId);
   @override
   State createState() {
     // TODO: implement createState
@@ -25,6 +26,7 @@ class ReadPage extends StatefulWidget{
   }
 }
 enum ScrollDirection{left,right}
+enum PageJumpType { stay, firstPage, lastPage }
 class _ReadPage extends State<ReadPage> {
   List<Widget> pages = new List<Widget>();//前、当前、下章节组成的页面
 
@@ -53,21 +55,21 @@ class _ReadPage extends State<ReadPage> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    localInfo = getChpterIdFromLocal(widget.fictionId);
-    chapterInitMethod = getAllChapter( localInfo["chapterId"]);
+    localInfo = getChpterIdFromLocal(widget.fictionId,widget.chapterId);
+    chapterInitMethod = getAllChapter( localInfo["chapterId"],PageJumpType.stay);
     pageController.addListener(scrollLinstener);
   }
 
 
 
   //从网络获取章节信息
-  Future<void> getAllChapter(int chapterId) async{
-
+  Future<List<Chapter>> getAllChapter(int chapterId,PageJumpType jumpType) async{
     Future<List<Chapter>> fromNet = Server.getChpterInfo(int.parse(widget.fictionId),chapterId,1);
+    List<Chapter> c= null;
     await fromNet.then((chapters){
       if(chapters.length ==0){
         print("未获取到章节信息");
-        return ;
+        return [];
       }
       for(Chapter c in chapters){
         if(c.chapterId == chapterId-1){
@@ -83,11 +85,22 @@ class _ReadPage extends State<ReadPage> {
           fenye(nextChapter);
         }
       }
+      if (jumpType == PageJumpType.firstPage) {
+        nowPage = 0;
+      } else if (jumpType == PageJumpType.lastPage) {
+        nowPage = nowChapter.pageStrs.length - 1;
+      }
+      if (jumpType != PageJumpType.stay) {
+        pageController.jumpToPage((preChapter != null ? preChapter.pageStrs.length : 0) + nowPage);
+      }
       setState(() {
         print("上一章和下一章信息获取完成，需要重新构建");
       });
+      c= chapters;
+
     });
     print("完成！");
+    return c;
   }
 
   ///获取下一章节信息
@@ -157,9 +170,9 @@ class _ReadPage extends State<ReadPage> {
   }
 
   //从本地获取上次读取章节的信息:以后用sqlflite存储数据
-  Map<String,int> getChpterIdFromLocal(String fictionId){
+  Map<String,int> getChpterIdFromLocal(String fictionId,String chapterId){
     Map<String,int> localInfo = new Map();
-    localInfo["chapterId"] = 1;
+    localInfo["chapterId"] = int.parse(chapterId);
     localInfo["readPage"] = 1;
     return localInfo;
 
@@ -203,10 +216,30 @@ class _ReadPage extends State<ReadPage> {
 
     ///设置主题
     SystemChrome.setSystemUIOverlayStyle(MyTheme.light);
-
+    Future.delayed(new Duration(milliseconds: 5));
     return new Scaffold(
         backgroundColor: Colors.white,
-        body: readBody(context)
+        body: new FutureBuilder(
+            future: this.chapterInitMethod,
+            builder: (BuildContext context, snapshot){
+              if(snapshot.connectionState == ConnectionState.done){
+                return readBody(context);
+              }else{
+                if(nowChapter==null){
+                  return new Center(
+                    child: new Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        new CircularProgressIndicator(),//转圈的加载动画
+//            new Image.asset("res/imgs/waitting.gif",width: 50,height: 50,fit: BoxFit.cover,),
+                        new Text("    加载处理中...")
+                      ],
+                    ),
+                  );
+                }
+              }
+
+        })
     );
   }
 
@@ -265,18 +298,6 @@ class _ReadPage extends State<ReadPage> {
   }
 
   Widget readBody(BuildContext context){
-    if(nowChapter==null){
-      return new Center(
-        child: new Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            new CircularProgressIndicator(),//转圈的加载动画
-//            new Image.asset("res/imgs/waitting.gif",width: 50,height: 50,fit: BoxFit.cover,),
-            new Text("    加载处理中...")
-          ],
-        ),
-      );
-    }
     int prePageNum = (preChapter==null?0:preChapter.pageStrs.length);
     int nowPageNum = (nowChapter==null?0:nowChapter.pageStrs.length);
     int nextPageNum = (nextChapter==null?0:nextChapter.pageStrs.length);
@@ -352,7 +373,7 @@ class _ReadPage extends State<ReadPage> {
                 txt,
                 style: readFontTextStyle(fontsize,fontheight)
               ),
-              onTapUp: (detail){}
+              onTapUp: readSectionOnTap
             )
           ),
           new Positioned(//页面顶部小说章节名字
@@ -404,20 +425,17 @@ class _ReadPage extends State<ReadPage> {
 
       if(nowPage>=(nowChapter.pageStrs.length-1) && nextChapter==null){
         Fluttertoast.showToast(msg: "已经是最后一页了",gravity: ToastGravity.CENTER);
-        pageController.nextPage(duration: Duration(milliseconds: 250), curve: Curves.easeOut);
         return;
       }
-      print("页面右侧被点击了");
-      pageController.animateToPage(nowPage+1, duration: new Duration(milliseconds: 300), curve: Curves.easeIn);
+      print("阅读页面右侧被点击了,向后翻页");
+      pageController.nextPage(duration: Duration(milliseconds: 250), curve: Curves.easeOut);
     }else if(xPosition<=0.45){
-      print("页面左侧被点击了");
+      print("阅读页面左侧被点击了，向前翻页");
       if(nowPage==0 && preChapter==null){
         Fluttertoast.showToast(msg: "已经是第一页了",gravity: ToastGravity.CENTER);
-        pageController.previousPage(duration: Duration(milliseconds: 250), curve: Curves.easeOut);
         return;
       }
-      pageController.animateToPage(nowPage-1, duration: new Duration(milliseconds: 300), curve: Curves.easeIn);
-
+      pageController.previousPage(duration: Duration(milliseconds: 250), curve: Curves.easeOut);
     }
   }
 

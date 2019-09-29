@@ -4,25 +4,24 @@ import 'dart:convert';
 import 'package:provide/provide.dart';
 import 'package:flutter/material.dart';
 
-class FictionDetailProvider with ChangeNotifier{
-
+class FictionDetailProvider with ChangeNotifier {
   FictionDetailPageModelEntity fictionDetailPageModelEntity = null;
-  FictionDetailPageModelFiciton showFiction;
-  getData(int showFictionId)async{
-    Future strData = Server.getFictionDetailPageData(showFictionId);
-    strData.then((data){
-      if(data!=null){
-        fictionDetailPageModelEntity = FictionDetailPageModelEntity.fromJson(json.decode(data.toString()));
-        Iterator<FictionDetailPageModelFiciton> iterator =fictionDetailPageModelEntity.ficitons.iterator;
-        while(iterator.moveNext()){
-          FictionDetailPageModelFiciton f = iterator.current;
-          if(f.id==showFictionId){
-            showFiction = f;
-            fictionDetailPageModelEntity.ficitons.remove(f);
-          }
+  FictionDetailPageModelFiction showFiction;
+  getData(int showFictionId) async {
+    String data = await Server.getFictionDetailPageData(showFictionId);
+    if (data != null) {
+      print("FictionDetailProvider--get data from：${data.toString()}");
+      fictionDetailPageModelEntity =
+          FictionDetailPageModelEntity.fromJson(json.decode(data.toString()));
+      fictionDetailPageModelEntity.fictions.removeWhere((f) {
+        if (f.id == showFictionId) {
+          showFiction = f;
+          return true;
         }
-        notifyListeners();
-      }
-    });
+      });
+
+      notifyListeners();
+    }
+    return data;
   }
 }

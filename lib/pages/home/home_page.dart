@@ -32,11 +32,11 @@ class _HomePage extends State<HomePage> with AutomaticKeepAliveClientMixin{
 
   ScrollController _scrollController = new ScrollController();
   bool searchNeedShow = true;
-
+  bool isInit = false;
+  Future futureFunc = null;
 
   @override
   void initState() {
-    Provide.value<HomePageProvider>(context).getData();
     // TODO: implement initState
     //给整个页面的listvie的控制器加监听，向下滑动超过
     _scrollController.addListener(
@@ -227,21 +227,25 @@ class _HomePage extends State<HomePage> with AutomaticKeepAliveClientMixin{
       margin: EdgeInsets.fromLTRB(0, 10, 0, 2),
       padding: EdgeInsets.fromLTRB(5, 5, 10, 5),
       color: Colors.white,
-      child: new Column(
-        children: <Widget>[
-          FictionBaseWidget.sectionTitle("热门推荐", true, "换一换"),//标题部分
-          FictionBaseWidget.fictionRowInfo(context,Provide.value<HomePageProvider>(context).hotTui.first),//横向展示小说内容
-          new Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      child: new Provide<HomePageProvider>(
+        builder: (context,child,homePageProvider){
+          return new Column(
             children: <Widget>[
-              FictionBaseWidget.fictionColumnInfo(context,true,Provide.value<HomePageProvider>(context).hotTui[1]),
-              FictionBaseWidget.fictionColumnInfo(context,true,Provide.value<HomePageProvider>(context).hotTui[2]),
-              FictionBaseWidget.fictionColumnInfo(context,true,Provide.value<HomePageProvider>(context).hotTui[3]),
-              FictionBaseWidget.fictionColumnInfo(context,true,Provide.value<HomePageProvider>(context).hotTui[4]),
+              FictionBaseWidget.sectionTitle("热门推荐", true, "换一换"),//标题部分
+              FictionBaseWidget.fictionRowInfo(context,homePageProvider.hotTui.first),//横向展示小说内容
+              new Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: <Widget>[
+                  FictionBaseWidget.fictionColumnInfo(context,true,homePageProvider.hotTui[1]),
+                  FictionBaseWidget.fictionColumnInfo(context,true,homePageProvider.hotTui[2]),
+                  FictionBaseWidget.fictionColumnInfo(context,true,homePageProvider.hotTui[3]),
+                  FictionBaseWidget.fictionColumnInfo(context,true,homePageProvider.hotTui[4]),
+                ],
+              )
             ],
-          )
-        ],
-      ),
+          );
+        },
+      )
     );
   }
 
@@ -253,22 +257,37 @@ class _HomePage extends State<HomePage> with AutomaticKeepAliveClientMixin{
       margin: EdgeInsets.fromLTRB(0, 5, 0, 2),
       padding: EdgeInsets.fromLTRB(5, 5, 10, 5),
       color: Colors.white,
-      child: new Column(
-        children: <Widget>[
-          FictionBaseWidget.sectionTitle(pushName, true,"查看更多"),
-          FictionBaseWidget.fictionRowInfo(context,Provide.value<HomePageProvider>(context).otherTui[0]),
-          FictionBaseWidget.fictionRowInfo(context,Provide.value<HomePageProvider>(context).otherTui[1]),
-          FictionBaseWidget.fictionRowInfo(context,Provide.value<HomePageProvider>(context).otherTui[2]),
-          FictionBaseWidget.fictionRowInfo(context,Provide.value<HomePageProvider>(context).otherTui[3]),
-        ],
-      ),
+      child: new Provide<HomePageProvider>(
+        builder: (context,child,homePageProvider){
+          return new Column(
+            children: <Widget>[
+              FictionBaseWidget.sectionTitle(pushName, true,"查看更多"),
+              FictionBaseWidget.fictionRowInfo(context,homePageProvider.otherTui[0]),
+              FictionBaseWidget.fictionRowInfo(context,homePageProvider.otherTui[1]),
+              FictionBaseWidget.fictionRowInfo(context,homePageProvider.otherTui[2]),
+              FictionBaseWidget.fictionRowInfo(context,homePageProvider.otherTui[3]),
+            ],
+          );
+        },
+      )
     );
   }
+
+
+  initPageData(BuildContext context)async{
+    Future future = Provide.value<HomePageProvider>(context).getData();
+    setState(() {
+
+    });
+    return future;
+  }
+
   @override
   Widget build(BuildContext context) {
 
     ///下拉回调方法,方法需要有async和await关键字，没有await，刷新图标立马消失，没有async，刷新图标不会消失
     Future<Null> _onRefresh() async{
+      initPageData(context);
       setState(() {
         searchNeedShow = false;
       });
@@ -311,7 +330,9 @@ class _HomePage extends State<HomePage> with AutomaticKeepAliveClientMixin{
 
 
 
-
+    if(this.futureFunc==null){
+      futureFunc = this.initPageData(context);
+    }
 
     Widget homePage(){
       return new Scaffold(
@@ -319,11 +340,23 @@ class _HomePage extends State<HomePage> with AutomaticKeepAliveClientMixin{
           decoration: new BoxDecoration(
             color: new Color.fromRGBO(230, 230, 230, 1),
           ),
-          child:  new Stack(
-            children: <Widget>[
-              homeListView,//整个页面的内容
-              searchNeedShow?searchSection(context):new Container(),//顶部搜索框部分
-            ],
+          child:  new FutureBuilder(
+            future: this.futureFunc,
+            builder: (BuildContext context,snapshot){
+              if(snapshot.connectionState ==ConnectionState.done && snapshot.data!=null){
+                return               new Stack(
+                  children: <Widget>[
+                    homeListView,//整个页面的内容
+                    searchNeedShow?searchSection(context):new Container(),//顶部搜索框部分
+                  ],
+                );
+              }else{
+                return new Center(
+                  child: new CircularProgressIndicator(),
+                );
+              }
+
+            },
           )
         ),
       );

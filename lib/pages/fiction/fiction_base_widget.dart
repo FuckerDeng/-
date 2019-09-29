@@ -6,7 +6,7 @@ import '../../public/models/fiction_detail_page_model_entity.dart';
 
 class FictionBaseWidget {
   //小说横向展示的组件
-  static Widget fictionRowInfo(BuildContext context,FictionDetailPageModelFiciton fiction){
+  static Widget fictionRowInfo(BuildContext context,FictionDetailPageModelFiction fiction){
     return new InkWell(
       onTap: (){
         print("横向小说被点击了");
@@ -70,7 +70,7 @@ class FictionBaseWidget {
   }
 
   ///小说信息竖向展示
-  static Widget fictionColumnInfo(BuildContext context,bool showHotValue,FictionDetailPageModelFiciton fiction){
+  static Widget fictionColumnInfo(BuildContext context,bool showHotValue,FictionDetailPageModelFiction fiction){
     return new InkWell(
       onTap: (){
         print("竖向展示的小说被点击了！");

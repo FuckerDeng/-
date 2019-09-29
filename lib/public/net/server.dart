@@ -16,6 +16,7 @@ class Server{
     print(chapterUrl);
 //    Future<String> future =DioUtils.dataFromNet(chapterUrl);
     String future =await DioUtils.dataFromNet(chapterUrl);
+    print(future);
     List<Chapter> chapters = new List();
     Chapter chapter;
 
@@ -40,7 +41,7 @@ class Server{
   ///获取小说详情页的数据
   ///fictionId: 小说的id
   static Future<String> getFictionDetailPageData(int fictionId) async {
-    String queryUrl = UrlConfig.fictionUrl["detailPage"] +"?howfictionid=${fictionId}";
+    String queryUrl = UrlConfig.fictionUrl["detailPage"] +"?showfictionid=${fictionId}";
     String future = await DioUtils.dataFromNet(queryUrl);
     return future;
   }

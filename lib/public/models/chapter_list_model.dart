@@ -4,10 +4,10 @@ class ChapterListModel {
 
   ChapterListModel({this.chapterInfos});
 
-  ChapterListModel.fromJson(Map<String, dynamic> json) {
+  ChapterListModel.fromJson(List<dynamic> json) {
     if (json != null) {
       chapterInfos = new List<ChapterInfo>();
-      (json as List).forEach((v) { chapterInfos.add(new ChapterInfo.fromJson(v)); });
+      json.forEach((v) { chapterInfos.add(new ChapterInfo.fromJson(v)); });
     }
   }
 

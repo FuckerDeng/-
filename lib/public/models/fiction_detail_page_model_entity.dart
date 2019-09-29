@@ -1,24 +1,24 @@
 class FictionDetailPageModelEntity {
-	List<FictionDetailPageModelFiciton> ficitons;
+	List<FictionDetailPageModelFiction> fictions;
 	FictionDetailPageModelLastchapter lastChapter;
-	List<FictionDetailPageModelFiciton> sameTypeFictions;
+	List<FictionDetailPageModelFiction> sameTypeFictions;
 
-	FictionDetailPageModelEntity({this.ficitons, this.lastChapter, this.sameTypeFictions});
+	FictionDetailPageModelEntity({this.fictions, this.lastChapter, this.sameTypeFictions});
 
 	FictionDetailPageModelEntity.fromJson(Map<String, dynamic> json) {
 		if (json['ficitons'] != null) {
-			ficitons = new List<FictionDetailPageModelFiciton>();(json['ficitons'] as List).forEach((v) { ficitons.add(new FictionDetailPageModelFiciton.fromJson(v)); });
+			fictions = new List<FictionDetailPageModelFiction>();(json['ficitons'] as List).forEach((v) { fictions.add(new FictionDetailPageModelFiction.fromJson(v)); });
 		}
 		lastChapter = json['lastChapter'] != null ? new FictionDetailPageModelLastchapter.fromJson(json['lastChapter']) : null;
 		if (json['sameTypeFictions'] != null) {
-			sameTypeFictions = new List<FictionDetailPageModelFiciton>();(json['sameTypeFictions'] as List).forEach((v) { sameTypeFictions.add(new FictionDetailPageModelFiciton.fromJson(v)); });
+			sameTypeFictions = new List<FictionDetailPageModelFiction>();(json['sameTypeFictions'] as List).forEach((v) { sameTypeFictions.add(new FictionDetailPageModelFiction.fromJson(v)); });
 		}
 	}
 
 	Map<String, dynamic> toJson() {
 		final Map<String, dynamic> data = new Map<String, dynamic>();
-		if (this.ficitons != null) {
-      data['ficitons'] =  this.ficitons.map((v) => v.toJson()).toList();
+		if (this.fictions != null) {
+      data['ficitons'] =  this.fictions.map((v) => v.toJson()).toList();
     }
 		if (this.lastChapter != null) {
       data['lastChapter'] = this.lastChapter.toJson();
@@ -30,16 +30,16 @@ class FictionDetailPageModelEntity {
 	}
 }
 
-class FictionDetailPageModelFiciton {
+class FictionDetailPageModelFiction {
 	String fictionDesc;
 	String fictiontype;
 	String author;
 	String fictionName;
 	int id;
 
-	FictionDetailPageModelFiciton({this.fictionDesc, this.fictiontype, this.author, this.fictionName, this.id});
+	FictionDetailPageModelFiction({this.fictionDesc, this.fictiontype, this.author, this.fictionName, this.id});
 
-	FictionDetailPageModelFiciton.fromJson(Map<String, dynamic> json) {
+	FictionDetailPageModelFiction.fromJson(Map<String, dynamic> json) {
 		fictionDesc = json['fictionDesc'];
 		fictiontype = json['fictiontype'];
 		author = json['author'];

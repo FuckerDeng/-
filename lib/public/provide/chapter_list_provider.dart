@@ -10,38 +10,36 @@ class ChapterListProvider with ChangeNotifier {
   List<BigChapter> bigChapters = new List();
 
   getData(int fictionId) async {
-    Future strData = Server.getChapterList(fictionId);
-    strData.then((data) {
-      if (data != null) {
-        chapterListModel =
-            ChapterListModel.fromJson(json.decode(data.toString()));
-        Iterator<ChapterInfo> iterator = chapterListModel.chapterInfos.iterator;
-        int start = 1;
-        int i = 1;
-        int all = 1;
-        BigChapter big = new BigChapter();
-        while (iterator.moveNext()) {
-          ChapterInfo f = iterator.current;
-          if (big.chapterInfos.length < 20) {
-            big.chapterInfos.add(f);
-          } else {
-            big = new BigChapter();
-            big.chapterInfos.add(f);
-            start = start + 20;
-            i = 1;
-          }
-          if (big.bigChapterName == "") {
-            big.bigChapterName = "第${start}章-第${start + 20}章";
-          }
-          i++;
+    bigChapters.clear();
+    chapterListModel = null;
+
+    String strData = await Server.getChapterList(fictionId);
+    if (strData != null) {
+      print("小说章节列表内容：${strData}");
+      chapterListModel =ChapterListModel.fromJson(json.decode(strData.toString()));
+      Iterator<ChapterInfo> iterator = chapterListModel.chapterInfos.iterator;
+      int start = 1;
+      BigChapter big = new BigChapter();
+      bigChapters.add(big);
+      while (iterator.moveNext()) {
+        ChapterInfo f = iterator.current;
+        if (big.chapterInfos.length < 20) {
+          big.chapterInfos.add(f);
+        } else {
+          big = new BigChapter();
+          bigChapters.add(big);
+          big.chapterInfos.add(f);
+          start = start + 20;
         }
-
-        notifyListeners();
+        if (big.bigChapterName == "") {
+          big.bigChapterName = "第${start}章-第${start + 20-1}章";
+        }
       }
-    });
+      notifyListeners();
+      return strData;
+    }
+
   }
-
-
 }
 
 class BigChapter {
