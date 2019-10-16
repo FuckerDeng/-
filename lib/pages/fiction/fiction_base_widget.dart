@@ -85,13 +85,16 @@ class FictionBaseWidget {
           ),
           new Container(
             padding: EdgeInsets.fromLTRB(0, 3, 0, 3),
+            alignment: Alignment.center,
+            width: ScreenUtil().setWidth(230),
             child: Text(
               fiction.fictionName,
               style: new TextStyle(
-                  fontWeight: FontWeight.bold
+                  fontWeight: FontWeight.bold,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
+
             ),
           ),
           !showHotValue?new Container():new Text(

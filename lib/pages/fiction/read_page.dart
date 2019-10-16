@@ -45,11 +45,15 @@ class _ReadPage extends State<ReadPage> {
   Future<void> screenInitMethod;
   Future<void> beforeRead;
 
-  PageController pageController = new PageController(keepPage: false,viewportFraction: 1.0);
+
+  PageController pageController;
   double fontsize = ScreenUtil().setSp(45);
   double fontheight = 1.2;
   //当前章节中展示的页面index
   int nowPage = 0;
+
+  //页面刚加载的时候这个值为true，表示pageview的滑动控制器还没有被初始化
+  bool firstView = true;
 
   @override
   void initState() {
@@ -57,7 +61,6 @@ class _ReadPage extends State<ReadPage> {
     super.initState();
     localInfo = getChpterIdFromLocal(widget.fictionId,widget.chapterId);
     chapterInitMethod = getAllChapter( localInfo["chapterId"],PageJumpType.stay);
-    pageController.addListener(scrollLinstener);
   }
 
 
@@ -93,9 +96,9 @@ class _ReadPage extends State<ReadPage> {
       if (jumpType != PageJumpType.stay) {
         pageController.jumpToPage((preChapter != null ? preChapter.pageStrs.length : 0) + nowPage);
       }
-      setState(() {
-        print("上一章和下一章信息获取完成，需要重新构建");
-      });
+//      setState(() {
+//        print("上一章和下一章信息获取完成，需要重新构建");
+//      });
       c= chapters;
 
     });
@@ -222,7 +225,7 @@ class _ReadPage extends State<ReadPage> {
         body: new FutureBuilder(
             future: this.chapterInitMethod,
             builder: (BuildContext context, snapshot){
-              if(snapshot.connectionState == ConnectionState.done){
+              if(snapshot.connectionState == ConnectionState.done && snapshot.data!=null){
                 return readBody(context);
               }else{
                 if(nowChapter==null){
@@ -303,6 +306,11 @@ class _ReadPage extends State<ReadPage> {
     int nextPageNum = (nextChapter==null?0:nextChapter.pageStrs.length);
     print("readBody-prePageNum=${prePageNum}===nowPageNum=${nowPageNum}===nextPageNum=${nextPageNum}");
     int pageCount = prePageNum+nowPageNum+nextPageNum;
+    if(firstView){
+      pageController = new PageController( initialPage: prePageNum,keepPage: true,viewportFraction: 1.0);
+      pageController.addListener(scrollLinstener);
+      firstView = false;
+    }
     var showChapter;
     return PageView.builder(
       physics: BouncingScrollPhysics(),

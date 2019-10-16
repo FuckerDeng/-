@@ -9,6 +9,9 @@ class HomePageProvider with ChangeNotifier {
   List<FictionDetailPageModelFiction> hotTui = new List();
   List<FictionDetailPageModelFiction> otherTui = new List();
   getData() async {
+    homeFictions.clear();
+    hotTui.clear();
+    otherTui.clear();
     String strData = await Server.getHomePageData();
     if (strData != null) {
       if (strData != null) {

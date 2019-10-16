@@ -215,7 +215,7 @@ class _FictionDetailPage extends State<FictionDetailPage> {
     return new InkWell(
       onTap: () {
         if (buttonName == "开始阅读") {
-          Routers.router.navigateTo(context, Routers.fictionReadPage+"?fictionid=${widget.fictionid}",
+          Routers.router.navigateTo(context, Routers.fictionReadPage+"?fictionid=${widget.fictionid}&chapterid=1",
               transition: TransitionType.inFromRight);
         }
         if (buttonName == "加入书架") {}
